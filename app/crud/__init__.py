@@ -1,0 +1,2 @@
+"""Inicjalizacja CRUD modułów"""
+
