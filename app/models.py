@@ -27,6 +27,23 @@ class User(Base):
         return f"<User(wallet={self.wallet}, username={self.username})>"
 
 
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    owner = Column(String(255), nullable=False, index=True)
+    parent_id = Column(Integer, ForeignKey("folders.id", ondelete="CASCADE"), nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    parent = relationship("Folder", remote_side=[id], back_populates="subfolders")
+    subfolders = relationship("Folder", back_populates="parent", cascade="all, delete-orphan")
+    files = relationship("File", back_populates="folder")
+
+    def __repr__(self):
+        return f"<Folder(id={self.id}, name={self.name}, owner={self.owner})>"
+
+
 class File(Base):
     __tablename__ = "files"
 
@@ -37,13 +54,14 @@ class File(Base):
     hash = Column(String(512), nullable=False, unique=True, index=True)
     encryption_type = Column(Text, default="AES_256", nullable=False)
     upload_date = Column(DateTime, default=datetime.utcnow, index=True)
+    folder_id = Column(Integer, ForeignKey("folders.id", ondelete="SET NULL"), nullable=True, index=True)
 
+    folder = relationship("Folder", back_populates="files")
     access_permissions = relationship("AccessPermission", back_populates="file", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="file", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<File(id={self.id}, owner={self.owner}, cid={self.cid})>"
-
 
 class AccessPermission(Base):
     __tablename__ = "access_permissions"

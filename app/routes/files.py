@@ -34,6 +34,7 @@ async def upload_file(
     hash: str = Form(...),
     filename: str = Form(...),
     encryption_type: str = Form(default="AES_256"),
+    folder_id: int = Form(default=None),
     current_wallet: str = Depends(get_current_wallet),
     db: Session = Depends(get_db)
 ):
@@ -43,6 +44,7 @@ async def upload_file(
     - **file**: Zaszyfrowany plik (form-data)
     - **hash**: SHA-256 hash pliku (z frontu)
     - **encryption_type**: Typ szyfrowania (default: AES_256)
+    - **folder_id**: Opcjonalny wskaźnik na folder docelowy
 
     WAŻNE: Plik musi być już zaszyfrowany na froncie!
     Backend przechowuje tylko encrypted blob.
@@ -80,7 +82,8 @@ async def upload_file(
             file_bytes=file_bytes,
             filename=filename,
             file_hash=hash,
-            encryption_type=encryption_type
+            encryption_type=encryption_type,
+            folder_id=folder_id
         )
 
         return FileUploadResponse(**result)
@@ -97,13 +100,14 @@ async def upload_file(
 
 @router.get("/my", response_model=list[FileListItem])
 async def get_my_files(
+    folder_id: int | None = None,
     current_wallet: str = Depends(get_current_wallet),
     db: Session = Depends(get_db)
 ):
     """
     Pobierz swoje pliki (gdzie jesteś właścicielem)
     """
-    files = FilesCRUD.get_user_files(db, current_wallet)
+    files = FilesCRUD.get_user_files(db, current_wallet, folder_id)
     logger.info(f"User {current_wallet} retrieved {len(files)} files")
     return files
 
@@ -325,4 +329,3 @@ async def rename_file(
         )
 
     return renamed
-

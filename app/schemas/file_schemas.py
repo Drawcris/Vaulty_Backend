@@ -11,6 +11,7 @@ class FileUploadResponse(BaseModel):
     file_id: int
     cid: str = Field(..., description="IPFS Content Identifier")
     filename: str | None = None
+    folder_id: int | None = None
     message: str = "File uploaded successfully"
 
     model_config = ConfigDict(from_attributes=True)
@@ -26,6 +27,7 @@ class FileMetadataResponse(BaseModel):
     hash: str = Field(..., description="Hash pliku")
     encryption_type: str
     upload_date: datetime
+    folder_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -38,6 +40,7 @@ class FileListItem(BaseModel):
     cid: str
     encryption_type: str
     upload_date: datetime
+    folder_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

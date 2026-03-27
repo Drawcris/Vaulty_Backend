@@ -18,14 +18,16 @@ class FilesCRUD:
         filename: str,
         cid: str,
         hash: str,
-        encryption_type: str = "AES_256"
+        encryption_type: str = "AES_256",
+        folder_id: int | None = None
     ) -> File:
         file = File(
             owner=owner,
             filename=filename,
             cid=cid,
             hash=hash,
-            encryption_type=encryption_type
+            encryption_type=encryption_type,
+            folder_id=folder_id
         )
         db.add(file)
         db.commit()
@@ -41,8 +43,11 @@ class FilesCRUD:
         return db.query(File).filter(File.hash == file_hash).first()
 
     @staticmethod
-    def get_user_files(db: Session, owner: str) -> list[File]:
-        return db.query(File).filter(File.owner == owner).order_by(File.upload_date.desc()).all()
+    def get_user_files(db: Session, owner: str, folder_id: int | None = None) -> list[File]:
+        return db.query(File).filter(
+            File.owner == owner,
+            File.folder_id == folder_id
+        ).order_by(File.upload_date.desc()).all()
 
     @staticmethod
     def get_shared_files(db: Session, wallet: str) -> list[File]:

@@ -25,7 +25,8 @@ class FileService:
         file_bytes: bytes,
         filename: str,
         file_hash: str | None = None,
-        encryption_type: str = "AES_256"
+        encryption_type: str = "AES_256",
+        folder_id: int | None = None
     ) -> dict:
         """
         Wgraj plik do IPFS i zapisz metadata w bazie.
@@ -52,7 +53,8 @@ class FileService:
             filename=filename,
             cid=cid,
             hash=file_hash,
-            encryption_type=encryption_type
+            encryption_type=encryption_type,
+            folder_id=folder_id
         )
 
         AuditCRUD.log_action(
