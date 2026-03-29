@@ -210,6 +210,7 @@ async def download_file_raw(
     current_wallet: str = Depends(get_current_wallet),
     db: Session = Depends(get_db)
 ):
+    logger.info(f"DOWNLOAD REQUEST: file_id={file_id}, user={current_wallet}")
     """
     Pobierz zaszyfrowany plik bezpośrednio z backendu
 

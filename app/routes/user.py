@@ -65,3 +65,14 @@ async def get_wallet_by_username(
         )
 
     return WalletLookupResponse(wallet=user.wallet)
+
+
+@router.get("/search", response_model=list[UserResponse])
+async def search_users(
+    q: str,
+    db: Session = Depends(get_db)
+):
+    """Przeszukuje użytkowników po nazwie (autocomplete)"""
+    if len(q) < 1:
+        return []
+    return UserCRUD.search_usernames(db, q)

@@ -105,8 +105,8 @@ async def get_current_user_info(
 
     return {
         "wallet": wallet,
+        "username": user_record.username if user_record else None,
         "authenticated": True,
         "exp": user.get("exp"),
-        "username": user_record.username if user_record else None,
         "username_required": user_record is None
     }

@@ -66,17 +66,13 @@ class File(Base):
 class AccessPermission(Base):
     """
     UWAGA: Ta tabela to SQL cache uprawnień.
-
-    Blockchain = SOURCE OF TRUTH (kto ma dostęp i na jak długo).
-    AccessPermission = kopia lokalna dla szybkości zapytań.
-
-    TODO (Etap 2): synchronizować z eventem smart contractu
-          (AccessGranted / AccessRevoked).
+    Blockchain = SOURCE OF TRUTH.
     """
     __tablename__ = "access_permissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False, index=True)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=True, index=True)
+    folder_id = Column(Integer, ForeignKey("folders.id", ondelete="CASCADE"), nullable=True, index=True)
     user_wallet = Column(String(512), nullable=False, index=True)
     expiration = Column(DateTime, nullable=True)  # NULL = brak wygaśnięcia
     granted_at = Column(DateTime, default=datetime.utcnow)
@@ -84,44 +80,33 @@ class AccessPermission(Base):
     file = relationship("File", back_populates="access_permissions")
 
     def __repr__(self):
-        return f"<AccessPermission(file_id={self.file_id}, user_wallet={self.user_wallet})>"
+        return f"<AccessPermission(file_id={self.file_id}, folder_id={self.folder_id}, user_wallet={self.user_wallet})>"
 
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False, index=True)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=True, index=True)
+    folder_id = Column(Integer, ForeignKey("folders.id", ondelete="CASCADE"), nullable=True, index=True)
     user_wallet = Column(String(512), nullable=False, index=True)
     action = Column(Enum(AuditAction), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    details = Column(Text, nullable=True)  # Dodatkowe informacje o akcji
+    details = Column(Text, nullable=True)
 
-    # Relacja
     file = relationship("File", back_populates="audit_logs")
 
     def __repr__(self):
-        return f"<AuditLog(file_id={self.file_id}, action={self.action}, timestamp={self.timestamp})>"
+        return f"<AuditLog(file_id={self.file_id}, folder_id={self.folder_id}, action={self.action})>"
 
 
 class FileKey(Base):
-    """
-    Zaszyfrowany klucz pliku per użytkownik.
-
-    ARCHITEKTURA (Etap 3 – Hybrid Encryption):
-      - Każdy plik ma losowy klucz AES (file_key)
-      - file_key jest szyfrowany osobno dla każdego uprawnionego użytkownika
-      - Backend przechowuje TYLKO encrypted_file_key (nigdy plaintext)
-      - Frontend deszyfruje file_key swoim kluczem (np. SHA256(signature))
-
-    TODO (Etap 3): wypełniać przy uploadzie i udostępnianiu
-    """
     __tablename__ = "file_keys"
 
     id = Column(Integer, primary_key=True, index=True)
     file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False, index=True)
     wallet = Column(String(512), nullable=False, index=True)
-    encrypted_key = Column(Text, nullable=False)  # AES file_key zaszyfrowany kluczem użytkownika (base64)
+    encrypted_key = Column(Text, nullable=False)
 
     file = relationship("File")
 

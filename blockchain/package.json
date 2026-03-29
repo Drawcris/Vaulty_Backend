@@ -1,0 +1,10 @@
+{
+  "name": "vaulty-blockchain",
+  "version": "1.0.0",
+  "description": "Vaulty Smart Contracts",
+  "main": "index.js",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.4"
+  }
+}

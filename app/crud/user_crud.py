@@ -15,6 +15,10 @@ class UserCRUD:
         return db.query(User).filter(User.username == username).first()
 
     @staticmethod
+    def search_usernames(db: Session, query: str) -> list[User]:
+        return db.query(User).filter(User.username.ilike(f"%{query}%")).limit(10).all()
+
+    @staticmethod
     def create_user(db: Session, wallet: str, username: str) -> User:
         user = User(wallet=wallet, username=username)
         db.add(user)

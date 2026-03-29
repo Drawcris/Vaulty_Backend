@@ -38,9 +38,13 @@ class FileListItem(BaseModel):
     id: int
     filename: str | None = None
     cid: str
+    owner: str | None = None
+    owner_username: str | None = None
     encryption_type: str
     upload_date: datetime
+    expiration: datetime | None = None
     folder_id: int | None = None
+    is_folder: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

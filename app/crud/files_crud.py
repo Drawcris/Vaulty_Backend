@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from app.models import AccessPermission, File
+from app.models import AccessPermission, File, User
 
 
 class FilesCRUD:
@@ -50,14 +50,37 @@ class FilesCRUD:
         ).order_by(File.upload_date.desc()).all()
 
     @staticmethod
-    def get_shared_files(db: Session, wallet: str) -> list[File]:
-        return db.query(File).join(AccessPermission).filter(
+    def get_shared_files(db: Session, wallet: str):
+        # Join with AccessPermission to get expiration and User to get owner_username
+        results = db.query(File, User.username, AccessPermission.expiration).join(
+            AccessPermission, AccessPermission.file_id == File.id
+        ).outerjoin(
+            User, User.wallet.ilike(File.owner)
+        ).filter(
             and_(
-                AccessPermission.user_wallet == wallet,
-                AccessPermission.file_id == File.id,
+                AccessPermission.user_wallet.ilike(wallet),
                 (AccessPermission.expiration.is_(None) | (AccessPermission.expiration > datetime.utcnow()))
             )
         ).order_by(File.upload_date.desc()).all()
+
+        # Map results to objects that match FileListItem schema
+        files_with_metadata = []
+        for file, username, expiration in results:
+            file_dict = {
+                "id": file.id,
+                "filename": file.filename,
+                "cid": file.cid,
+                "owner": file.owner,
+                "owner_username": username or "Nieznany",
+                "encryption_type": file.encryption_type,
+                "upload_date": file.upload_date,
+                "expiration": expiration,
+                "folder_id": file.folder_id,
+                "is_folder": False
+            }
+            files_with_metadata.append(file_dict)
+            
+        return files_with_metadata
 
     @staticmethod
     def delete_file(db: Session, file_id: int) -> bool:

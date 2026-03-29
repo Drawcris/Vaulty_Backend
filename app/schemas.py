@@ -76,7 +76,8 @@ class FileResponse(BaseModel):
 # AccessPermission schemy
 class AccessPermissionCreate(BaseModel):
     """Request do nadania dostępu"""
-    file_id: int
+    file_id: Optional[int] = None
+    folder_id: Optional[int] = None
     user_wallet: str
     expiration: Optional[datetime] = None
 
@@ -89,7 +90,8 @@ class AccessPermissionCreate(BaseModel):
 class AccessPermissionResponse(BaseModel):
     """Response z danymi dostępu"""
     id: int
-    file_id: int
+    file_id: Optional[int]
+    folder_id: Optional[int]
     user_wallet: str
     expiration: Optional[datetime]
     granted_at: datetime
@@ -101,7 +103,8 @@ class AccessPermissionResponse(BaseModel):
 # AuditLog schemy
 class AuditLogCreate(BaseModel):
     """Request do logowania akcji"""
-    file_id: int
+    file_id: Optional[int] = None
+    folder_id: Optional[int] = None
     user_wallet: str
     action: str
 
@@ -114,7 +117,8 @@ class AuditLogCreate(BaseModel):
 class AuditLogResponse(BaseModel):
     """Response z danymi loga"""
     id: int
-    file_id: int
+    file_id: Optional[int]
+    folder_id: Optional[int]
     user_wallet: str
     action: str
     timestamp: datetime
