@@ -20,7 +20,11 @@ class IPFSService:
         """Inicjalizacja połączenia z IPFS"""
         self.client = None
         self.mock_mode = MOCK_MODE
+        self.mock_dir = os.path.join(os.getcwd(), ".mock_ipfs")
         
+        if self.mock_mode:
+            os.makedirs(self.mock_dir, exist_ok=True)
+            
         if not self.mock_mode:
             try:
                 self.client = ipfshttpclient.connect(IPFS_API_URL)
@@ -28,6 +32,7 @@ class IPFSService:
                 print(f"Ostrzeżenie: Nie mogę połączyć się z IPFS: {e}")
                 print(f"Zmienia się na MOCK MODE")
                 self.mock_mode = True
+                os.makedirs(self.mock_dir, exist_ok=True)
 
     def _generate_fake_cid(self, data: bytes) -> str:
         """Generuj fake CID na podstawie hash'u danych (dla testów)"""
@@ -51,9 +56,12 @@ class IPFSService:
             Exception: Jeśli upload się nie powiedzie
         """
         if self.mock_mode:
-            # Zwróć fake CID dla testów
+            # Zwróć fake CID dla testów i zapisz lokalnie
             cid = self._generate_fake_cid(file_bytes)
-            print(f"[MOCK] Plik zarejestrowany z CID: {cid}")
+            mock_path = os.path.join(self.mock_dir, cid)
+            with open(mock_path, "wb") as f:
+                f.write(file_bytes)
+            print(f"[MOCK] Plik zarejestrowany i zapisany lokalnie z CID: {cid}")
             return cid
 
         if not self.client:
@@ -80,6 +88,13 @@ class IPFSService:
         Raises:
             Exception: Jeśli pobieranie się nie powiedzie
         """
+        if self.mock_mode:
+            mock_path = os.path.join(self.mock_dir, cid)
+            if not os.path.exists(mock_path):
+                raise Exception(f"[MOCK] File not found for CID: {cid}")
+            with open(mock_path, "rb") as f:
+                return f.read()
+
         if not self.client:
             raise Exception("IPFS client is not connected")
 
