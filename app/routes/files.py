@@ -11,6 +11,7 @@ from app.crud.access_crud import AccessCRUD
 from app.crud.audit_crud import AuditCRUD
 from app.services.file_service import file_service
 from app.services.ipfs_service import ipfs_service
+from app.services.blockchain_service import blockchain_service
 from app.schemas.file_schemas import (
     FileUploadResponse,
     FileMetadataResponse,
@@ -145,9 +146,9 @@ async def get_file_metadata(
             detail="File not found"
         )
 
-    # Sprawdź dostęp
+    # Sprawdź dostęp (blockchain jako source of truth, SQL jako cache)
     is_owner = file.owner == current_wallet
-    has_access = AccessCRUD.check_user_access(db, file_id, current_wallet)
+    has_access = blockchain_service.has_access(current_wallet, file_id, db)
 
     if not is_owner and not has_access:
         logger.warning(f"User {current_wallet} tried to access file {file_id} without permission")
@@ -178,9 +179,9 @@ async def download_file(
             detail="File not found"
         )
 
-    # Sprawdź dostęp
+    # Sprawdź dostęp (blockchain jako source of truth, SQL jako cache)
     is_owner = file.owner == current_wallet
-    has_access = AccessCRUD.check_user_access(db, file_id, current_wallet)
+    has_access = blockchain_service.has_access(current_wallet, file_id, db)
 
     if not is_owner and not has_access:
         raise HTTPException(
@@ -225,9 +226,9 @@ async def download_file_raw(
             detail="File not found"
         )
 
-    # Sprawdź dostęp
+    # Sprawdź dostęp (blockchain jako source of truth, SQL jako cache)
     is_owner = file.owner == current_wallet
-    has_access = AccessCRUD.check_user_access(db, file_id, current_wallet)
+    has_access = blockchain_service.has_access(current_wallet, file_id, db)
 
     if not is_owner and not has_access:
         raise HTTPException(

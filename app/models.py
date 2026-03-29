@@ -64,6 +64,15 @@ class File(Base):
         return f"<File(id={self.id}, owner={self.owner}, cid={self.cid})>"
 
 class AccessPermission(Base):
+    """
+    UWAGA: Ta tabela to SQL cache uprawnień.
+
+    Blockchain = SOURCE OF TRUTH (kto ma dostęp i na jak długo).
+    AccessPermission = kopia lokalna dla szybkości zapytań.
+
+    TODO (Etap 2): synchronizować z eventem smart contractu
+          (AccessGranted / AccessRevoked).
+    """
     __tablename__ = "access_permissions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -94,3 +103,27 @@ class AuditLog(Base):
     def __repr__(self):
         return f"<AuditLog(file_id={self.file_id}, action={self.action}, timestamp={self.timestamp})>"
 
+
+class FileKey(Base):
+    """
+    Zaszyfrowany klucz pliku per użytkownik.
+
+    ARCHITEKTURA (Etap 3 – Hybrid Encryption):
+      - Każdy plik ma losowy klucz AES (file_key)
+      - file_key jest szyfrowany osobno dla każdego uprawnionego użytkownika
+      - Backend przechowuje TYLKO encrypted_file_key (nigdy plaintext)
+      - Frontend deszyfruje file_key swoim kluczem (np. SHA256(signature))
+
+    TODO (Etap 3): wypełniać przy uploadzie i udostępnianiu
+    """
+    __tablename__ = "file_keys"
+
+    id = Column(Integer, primary_key=True, index=True)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False, index=True)
+    wallet = Column(String(512), nullable=False, index=True)
+    encrypted_key = Column(Text, nullable=False)  # AES file_key zaszyfrowany kluczem użytkownika (base64)
+
+    file = relationship("File")
+
+    def __repr__(self):
+        return f"<FileKey(file_id={self.file_id}, wallet={self.wallet})>"
