@@ -19,7 +19,8 @@ app.add_middleware(
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
+    expose_headers=["X-Encrypted-CEK"]
 )
 
 # Rejestruj wszystkie routery

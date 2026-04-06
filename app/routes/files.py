@@ -36,6 +36,7 @@ async def upload_file(
     filename: str = Form(...),
     encryption_type: str = Form(default="AES_256"),
     folder_id: int = Form(default=None),
+    encrypted_cek: str = Form(...),
     current_wallet: str = Depends(get_current_wallet),
     db: Session = Depends(get_db)
 ):
@@ -84,7 +85,8 @@ async def upload_file(
             filename=filename,
             file_hash=hash,
             encryption_type=encryption_type,
-            folder_id=folder_id
+            folder_id=folder_id,
+            encrypted_cek=encrypted_cek
         )
 
         return FileUploadResponse(**result)
@@ -252,10 +254,18 @@ async def download_file_raw(
 
         logger.info(f"User {current_wallet} downloaded raw file {file_id}")
 
+        file_key = FilesCRUD.get_file_key(db, file_id, current_wallet)
+        headers = {
+            "Content-Disposition": f"attachment; filename=file_{file_id}",
+            "Access-Control-Expose-Headers": "X-Encrypted-CEK"
+        }
+        if file_key and file_key.encrypted_key:
+            headers["X-Encrypted-CEK"] = file_key.encrypted_key
+
         return Response(
             content=file_bytes,
             media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename=file_{file_id}"}
+            headers=headers
         )
     except Exception as e:
         logger.error(f"Failed to download file {file_id}: {str(e)}")

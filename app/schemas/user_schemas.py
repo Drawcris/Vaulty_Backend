@@ -19,6 +19,7 @@ UsernameValue = Annotated[
 class UserResponse(BaseModel):
     wallet: str
     username: str | None
+    encryption_public_key: str | None = None
     created_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -26,7 +27,11 @@ class UserResponse(BaseModel):
 
 class SetUsernameRequest(BaseModel):
     username: UsernameValue
+    encryption_public_key: str | None = None
 
 
 class WalletLookupResponse(BaseModel):
     wallet: str
+
+class UpdatePublicKeyRequest(BaseModel):
+    encryption_public_key: str

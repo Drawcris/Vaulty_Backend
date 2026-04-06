@@ -81,6 +81,10 @@ async def grant_access(
         expiration=request.expiration
     )
 
+    # Zapisz zaszyfrowany CEK dla odbiorcy
+    if file_id and request.encrypted_cek:
+        FilesCRUD.add_file_key(db, file_id=file_id, wallet=target_wallet, encrypted_key=request.encrypted_cek)
+
     AuditCRUD.log_action(
         db=db,
         file_id=file_id,

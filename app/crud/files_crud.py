@@ -5,11 +5,22 @@ from datetime import datetime
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from app.models import AccessPermission, File, User
-
+from app.models import AccessPermission, File, User, FileKey
 
 class FilesCRUD:
     """CRUD operacje dla modelu File"""
+
+    @staticmethod
+    def add_file_key(db: Session, file_id: int, wallet: str, encrypted_key: str) -> FileKey:
+        file_key = FileKey(file_id=file_id, wallet=wallet, encrypted_key=encrypted_key)
+        db.add(file_key)
+        db.commit()
+        db.refresh(file_key)
+        return file_key
+
+    @staticmethod
+    def get_file_key(db: Session, file_id: int, wallet: str) -> FileKey | None:
+        return db.query(FileKey).filter(FileKey.file_id == file_id, FileKey.wallet.ilike(wallet)).first()
 
     @staticmethod
     def create_file(

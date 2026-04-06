@@ -10,6 +10,7 @@ from app.schemas.user_schemas import (
     SetUsernameRequest,
     UserResponse,
     WalletLookupResponse,
+    UpdatePublicKeyRequest,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -48,7 +49,7 @@ async def set_username(
             detail="Username already taken"
         )
 
-    return UserCRUD.create_user(db=db, wallet=wallet, username=request.username)
+    return UserCRUD.create_user(db=db, wallet=wallet, username=request.username, encryption_public_key=request.encryption_public_key)
 
 
 @router.get("/by-username/{username}", response_model=WalletLookupResponse)
@@ -76,3 +77,39 @@ async def search_users(
     if len(q) < 1:
         return []
     return UserCRUD.search_usernames(db, q)
+
+
+@router.get("/public-key/{wallet_or_username}")
+async def get_user_public_key(
+    wallet_or_username: str,
+    db: Session = Depends(get_db)
+):
+    """Pobierz klucz publiczny szyfrowania użytkownika po wallet lub username"""
+    from eth_utils import is_address
+    if is_address(wallet_or_username):
+        user = UserCRUD.get_by_wallet(db, wallet_or_username)
+    else:
+        user = UserCRUD.get_by_username(db, wallet_or_username)
+
+    if not user or not user.encryption_public_key:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or encryption key not set"
+        )
+
+    return {"wallet": user.wallet, "encryption_public_key": user.encryption_public_key}
+
+@router.put("/public-key", response_model=UserResponse)
+async def update_public_key(
+    request: UpdatePublicKeyRequest,
+    wallet: str = Depends(get_current_wallet),
+    db: Session = Depends(get_db)
+):
+    user = UserCRUD.get_by_wallet(db, wallet)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return UserCRUD.update_public_key(db, user, request.encryption_public_key)

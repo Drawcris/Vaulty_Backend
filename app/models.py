@@ -21,6 +21,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     wallet = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(50), unique=True, index=True, nullable=False)
+    encryption_public_key = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     def __repr__(self):

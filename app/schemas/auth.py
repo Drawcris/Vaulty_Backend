@@ -32,6 +32,7 @@ class VerifySignatureRequest(BaseModel):
     """Request do weryfikacji podpisu"""
     wallet: str
     signature: str
+    encryption_public_key: Optional[str] = None
 
     @field_validator("wallet")
     @classmethod

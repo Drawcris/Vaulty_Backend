@@ -26,7 +26,8 @@ class FileService:
         filename: str,
         file_hash: str | None = None,
         encryption_type: str = "AES_256",
-        folder_id: int | None = None
+        folder_id: int | None = None,
+        encrypted_cek: str | None = None
     ) -> dict:
         """
         Wgraj plik do IPFS i zapisz metadata w bazie.
@@ -56,6 +57,9 @@ class FileService:
             encryption_type=encryption_type,
             folder_id=folder_id
         )
+
+        if encrypted_cek:
+            FilesCRUD.add_file_key(db, file_id=file_record.id, wallet=owner, encrypted_key=encrypted_cek)
 
         AuditCRUD.log_action(
             db=db,

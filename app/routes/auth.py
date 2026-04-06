@@ -78,6 +78,9 @@ async def verify_signature(
         auth_service.clear_challenge(request.wallet)
         token = auth_service.create_jwt_token(request.wallet)
         user = UserCRUD.get_by_wallet(db, request.wallet)
+        
+        if user and request.encryption_public_key:
+            UserCRUD.update_public_key(db, user, request.encryption_public_key)
 
         return VerifySignatureResponse(
             token=token,

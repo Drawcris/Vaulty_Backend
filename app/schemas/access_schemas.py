@@ -21,6 +21,10 @@ class GrantAccessRequest(BaseModel):
         None,
         description="Data wygaśnięcia dostępu (null = bez limitu)"
     )
+    encrypted_cek: Optional[str] = Field(
+        None,
+        description="CEK pliku zaszyfrowany kluczem publicznym odbiorcy (EIP-1024)"
+    )
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -10,7 +10,7 @@ from .auth import (
 from .file import FileCreate, FileResponse
 from .access_permission import AccessPermissionCreate, AccessPermissionResponse
 from .audit_log import AuditLogCreate, AuditLogResponse
-from .user_schemas import UserResponse, SetUsernameRequest, WalletLookupResponse
+from .user_schemas import UserResponse, SetUsernameRequest, WalletLookupResponse, UpdatePublicKeyRequest
 
 __all__ = [
     # Auth
@@ -32,5 +32,6 @@ __all__ = [
     "UserResponse",
     "SetUsernameRequest",
     "WalletLookupResponse",
+    "UpdatePublicKeyRequest",
 ]
 
